@@ -5,13 +5,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { APP_PIPE } from '@nestjs/core';
 import { OffersModule } from './modules/offers/offers.module';
 import 'dotenv/config'
+import { Offer } from './modules/offers/entitites/offer.entity';
 
 @Module({
   imports: [
     TypeOrmModule.forRoot({
       type: 'sqlite',
       database: process.env.DEV_DB_NAME,
-      entities: [],
+      entities: [Offer],
       synchronize: true,
     }),
     OffersModule,
