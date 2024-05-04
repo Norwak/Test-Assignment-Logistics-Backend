@@ -10,7 +10,7 @@ export class Offer {
   @Column({default: "CURRENT_TIMESTAMP"})
   date: Date;
 
-  @Column()
+  @Column({nullable: true})
   notes: string;
 
   // 0 = new, 1 = underway, 2 = done
