@@ -9,10 +9,10 @@ export class Carrier {
   @Column()
   name: string;
 
-  @Column()
+  @Column({nullable: true})
   phone: string;
 
-  @Column()
+  @Column({nullable: true})
   atiId: number;
 
   @OneToMany(type => Offer, offer => offer.carrier)

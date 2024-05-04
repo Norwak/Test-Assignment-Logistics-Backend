@@ -81,6 +81,7 @@ describe('ClientsService', () => {
 
   it('[findOne] should throw a BadRequestException if item\'s id isn\'t valid', async () => {
     await expect(clientsService.findOne(-15)).rejects.toThrow(BadRequestException);
+    // @ts-ignore
     await expect(clientsService.findOne(undefined)).rejects.toThrow(BadRequestException);
   });
 
@@ -119,7 +120,7 @@ describe('ClientsService', () => {
   });
 
   it('[update] should throw a NotFoundException if item\'s id doesn\'t exist', async () => {
-    await expect(clientsService.update(123, { name: '' })).rejects.toThrow(NotFoundException);
+    await expect(clientsService.update(123, { name: 'Item #1' })).rejects.toThrow(NotFoundException);
   });
 
 
@@ -132,6 +133,7 @@ describe('ClientsService', () => {
   });
 
   it('[remove] should throw a BadRequestException if item\'s id is invalid', async () => {
+    // @ts-ignore
     await expect(clientsService.remove(undefined)).rejects.toThrow(BadRequestException);
   });
 
