@@ -1,0 +1,28 @@
+### Find clients by name
+GET http://localhost:3000/clients?q=ozon
+
+
+### Find specific client by id
+GET http://localhost:3000/clients/1
+
+
+### Create a client
+POST http://localhost:3000/clients
+Content-Type: application/json
+
+{
+  "name": "Ozon"
+}
+
+
+### Update a client
+PATCH http://localhost:3000/clients/1
+Content-Type: application/json
+
+{
+  "name": "Wildberries"
+}
+
+
+### Delete a client
+DELETE http://localhost:3000/clients/2

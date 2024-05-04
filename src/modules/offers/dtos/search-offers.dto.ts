@@ -1,4 +1,4 @@
-import { IsArray, IsDate, IsInt, IsNumber, IsOptional, IsString, Min } from "class-validator";
+import { IsArray, IsDate, IsInt, IsNumber, IsNumberString, IsOptional, IsString, Min } from "class-validator";
 
 export class SearchOffersDto {
   @IsDate()
@@ -10,17 +10,17 @@ export class SearchOffersDto {
   notes?: string;
 
   @IsArray()
-  @IsInt({each: true})
+  @IsNumberString({}, {each: true})
   @IsOptional()
   status?: number[];
 
   @IsArray()
-  @IsInt({each: true})
+  @IsNumberString({}, {each: true})
   @IsOptional()
   clientId?: number[];
 
   @IsArray()
-  @IsInt({each: true})
+  @IsNumberString({}, {each: true})
   @IsOptional()
   carrierId?: number[];
 

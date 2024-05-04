@@ -1,0 +1,32 @@
+### Find carriers by name
+GET http://localhost:3000/carriers?q=Деловые
+
+
+### Find specific carrier by id
+GET http://localhost:3000/carriers/1
+
+
+### Create a carrier
+POST http://localhost:3000/carriers
+Content-Type: application/json
+
+{
+  "name": "Деловые линии",
+  "phone": "+7 (343) 000-00-00",
+  "atiId": 12345
+}
+
+
+### Update a carrier
+PATCH http://localhost:3000/carriers/1
+Content-Type: application/json
+
+{
+  "name": "CDEK",
+  "phone": "81231231212",
+  "atiId": 123456
+}
+
+
+### Delete a carrier
+DELETE http://localhost:3000/carriers/2

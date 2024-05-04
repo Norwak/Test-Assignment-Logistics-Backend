@@ -56,49 +56,60 @@ export class OffersService {
     return offer;
   }
 
-  async create(data: CreateOfferDto) {
-    if (data.date && data.date.getFullYear() < 1970) {
+  async create({date, notes, status, clientId, carrierId}: CreateOfferDto) {
+    if (date && date.getFullYear() < 1970) {
       throw new BadRequestException('date is too old');
     }
-    if (Object.hasOwn(data, 'status') && (!data.status || !Number.isInteger(data.status) || data.status <= -1 || data.status >= 3)) {
+    if (status !== undefined && (!Number.isInteger(status) || status <= -1 || status >= 3)) {
       throw new BadRequestException('status is not in range of 0..2');
     }
-    if (Object.hasOwn(data, 'clientId') && (!data.clientId || !Number.isInteger(data.clientId) || data.clientId < 1)) {
+    if (clientId === undefined || !Number.isInteger(clientId) || clientId < 1) {
       throw new BadRequestException('clientId isn\'t a positive integer');
     }
-    if (Object.hasOwn(data, 'carrierId') && (!data.carrierId || !Number.isInteger(data.carrierId) || data.carrierId < 1)) {
+    if (carrierId === undefined || !Number.isInteger(carrierId) || carrierId < 1) {
       throw new BadRequestException('carrierId isn\'t a positive integer');
     }
 
-    const client = await this.clientsService.findOne(data.clientId);
-    const carrier = await this.carriersService.findOne(data.carrierId);
+    const client = await this.clientsService.findOne(clientId);
+    const carrier = await this.carriersService.findOne(carrierId);
 
-    const offer = this.offersRepository.create({...data, client, carrier});
+    const offer = this.offersRepository.create({
+      ...(date && {date}),
+      ...(notes && {notes}),
+      ...(status && {status}),
+      client,
+      carrier,
+    });
     return await this.offersRepository.save(offer);
   }
 
-  async update(id: number, data: UpdateOfferDto) {
-    if (data.date && data.date.getFullYear() < 1970) {
+  async update(id: number, {date, notes, status, clientId, carrierId}: UpdateOfferDto) {
+    if (date && date.getFullYear() < 1970) {
       throw new BadRequestException('date is too old');
     }
-    if (Object.hasOwn(data, 'status') && (!data.status || !Number.isInteger(data.status) || data.status <= -1 || data.status >= 3)) {
+    if (status !== undefined && (!Number.isInteger(status) || status <= -1 || status >= 3)) {
       throw new BadRequestException('status is not in range of 0..2');
     }
-    if (Object.hasOwn(data, 'clientId') && (!data.clientId || !Number.isInteger(data.clientId) || data.clientId < 1)) {
+    if (clientId !== undefined && (!Number.isInteger(clientId) || clientId < 1)) {
       throw new BadRequestException('clientId isn\'t a positive integer');
     }
-    if (Object.hasOwn(data, 'carrierId') && (!data.carrierId || !Number.isInteger(data.carrierId) || data.carrierId < 1)) {
+    if (carrierId !== undefined && (!Number.isInteger(carrierId) || carrierId < 1)) {
       throw new BadRequestException('carrierId isn\'t a positive integer');
     }
 
     const offer = await this.findOne(id);
-    Object.assign(offer, data);
-
-    if (data.clientId) {
-      offer.client = await this.clientsService.findOne(data.clientId);
+    const newData = {
+      ...(date && {date}),
+      ...(notes && {notes}),
+      ...(status && {status}),
     }
-    if (data.carrierId) {
-      offer.carrier = await this.carriersService.findOne(data.carrierId);
+    Object.assign(offer, newData);
+
+    if (clientId) {
+      offer.client = await this.clientsService.findOne(clientId);
+    }
+    if (carrierId) {
+      offer.carrier = await this.carriersService.findOne(carrierId);
     } 
 
     return await this.offersRepository.save(offer);

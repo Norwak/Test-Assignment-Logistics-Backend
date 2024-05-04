@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Client } from './entities/client.entity';
-import { Like, Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { CreateClientDto } from './dtos/create-client.dto';
 import { UpdateClientDto } from './dtos/update-client.dto';
 
@@ -13,7 +13,7 @@ export class ClientsService {
 
   async find(query: string) {
     const name = query || '';
-    return await this.clientsRepository.find({where: {name: Like(`%${name}%`)}});
+    return await this.clientsRepository.find({where: {name: ILike(`%${name}%`)}});
   }
 
   async findOne(id: number) {

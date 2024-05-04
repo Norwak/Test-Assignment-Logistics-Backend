@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Carrier } from './entities/carrier.entity';
-import { Like, Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { CreateCarrierDto } from './dtos/create-carrier.dto';
 import { UpdateCarrierDto } from './dtos/update-carrier.dto';
 
@@ -13,7 +13,7 @@ export class CarriersService {
 
   async find(query: string) {
     const name = query || '';
-    return await this.carriersRepository.find({where: {name: Like(`%${name}%`)}});
+    return await this.carriersRepository.find({where: {name: ILike(`%${name}%`)}});
   }
 
   async findOne(id: number) {

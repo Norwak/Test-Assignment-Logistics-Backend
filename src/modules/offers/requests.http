@@ -1,0 +1,31 @@
+### Search offers
+GET http://localhost:3000/offers/search?date=2023-12-01T05:05:05.000Z&notes=Привезти&status[]=0&clientId[]=1&carrierId[]=1&page=1
+
+### Find specific offer by id
+GET http://localhost:3000/offers/1
+
+
+### Create a offer
+POST http://localhost:3000/offers
+Content-Type: application/json
+
+{
+  "date": "2023-12-01T05:05:05.000Z",
+  "notes": "Привезти после обеда",
+  "status": 0,
+  "clientId": 1,
+  "carrierId": 1
+}
+
+
+### Update a offer
+PATCH http://localhost:3000/offers/1
+Content-Type: application/json
+
+{
+  "notes": "Привезти ночью"
+}
+
+
+### Delete a offer
+DELETE http://localhost:3000/offers/2
