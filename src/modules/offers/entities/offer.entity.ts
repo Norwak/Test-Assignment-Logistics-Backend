@@ -7,7 +7,7 @@ export class Offer {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({default: "CURRENT_TIMESTAMP"})
+  @Column({default: () => "CURRENT_TIMESTAMP"})
   date: Date;
 
   @Column({nullable: true})

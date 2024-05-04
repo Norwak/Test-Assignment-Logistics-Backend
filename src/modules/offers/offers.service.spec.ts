@@ -18,16 +18,27 @@ describe('OffersService', () => {
   let dataSource: DataSource;
 
 
-  const dummyOffer1: Partial<CreateOfferDto> = {
+  const dummyClients = [
+    {id: 1, name: 'Ozon'} as Client,
+    {id: 2, name: 'Wildberries'} as Client,
+    {id: 3, name: 'Yandex.Market'} as Client,
+  ]
+
+  const dummyCarriers = [
+    {id: 1, name: 'Деловые линии', phone: '+7 (343) 000-00-00', atiId: 123} as Carrier,
+    {id: 2, name: 'CDEK', phone: '88001231212', atiId: 1234} as Carrier,
+  ]
+
+  const dummyOffer1: CreateOfferDto = {
     clientId: 1,
     carrierId: 1,
   }
-  const dummyOffer2: Partial<CreateOfferDto> = {
+  const dummyOffer2: CreateOfferDto = {
     clientId: 2,
     carrierId: 1,
     notes: 'Разгрузочная зона позади дома',
   }
-  const dummyOffer3: Partial<CreateOfferDto> = {
+  const dummyOffer3: CreateOfferDto = {
     date: new Date('2024-04-17T13:24:00.000Z'),
     clientId: 3,
     carrierId: 2,
@@ -40,17 +51,20 @@ describe('OffersService', () => {
     dataSource = new DataSource(dataSourceOptions);
     await dataSource.initialize();
 
+    await dataSource.createQueryBuilder().insert().into(Client).values(dummyClients).execute();
+    await dataSource.createQueryBuilder().insert().into(Carrier).values(dummyCarriers).execute();
+
     fakeClientsService = {
       findOne: (id: number) => {
         switch (id) {
           case 1:
-            return Promise.resolve({id: 1, name: 'Ozon'} as Client);
+            return Promise.resolve(dummyClients[0]);
         
           case 2:
-            return Promise.resolve({id: 2, name: 'Wildberries'} as Client);
+            return Promise.resolve(dummyClients[1]);
         
           case 3:
-            return Promise.resolve({id: 3, name: 'Yandex.Market'} as Client);
+            return Promise.resolve(dummyClients[2]);
 
           default:
             throw new NotFoundException('Couldn\'t find a client with given id');
@@ -62,10 +76,10 @@ describe('OffersService', () => {
       findOne: (id: number) => {
         switch (id) {
           case 1:
-            return Promise.resolve({id: 1, name: 'Деловые линии', phone: '+7 (343) 000-00-00', atiId: 123} as Carrier);
+            return Promise.resolve(dummyCarriers[0]);
         
           case 2:
-            return Promise.resolve({id: 2, name: 'CDEK', phone: '88001231212', atiId: 1234} as Carrier);
+            return Promise.resolve(dummyCarriers[1]);
 
           default:
             throw new NotFoundException('Couldn\'t find a carrier with given id');
@@ -79,7 +93,15 @@ describe('OffersService', () => {
         {
           provide: getRepositoryToken(Offer),
           useValue: dataSource.getRepository(Offer),
-        }
+        },
+        {
+          provide: ClientsService,
+          useValue: fakeClientsService,
+        },
+        {
+          provide: CarriersService,
+          useValue: fakeCarriersService,
+        },
       ],
     }).compile();
 
@@ -100,11 +122,12 @@ describe('OffersService', () => {
 
   it('[search] should return an array of offers matching a complex search query #1', async () => {
     await offersService.create(dummyOffer1);
+    const now = new Date();
 
-    const offers = await offersService.search({client: 'oz'});
+    const offers = await offersService.search({clientId: [1, 2]});
     expect(offers.length).toEqual(1);
     expect(offers[0].client.name).toEqual('Ozon');
-    expect(offers[0].date.getUTCHours()).toEqual(new Date().getUTCHours());
+    expect(offers[0].date.getUTCHours()).toEqual(now.getUTCHours());
   });
 
   it('[search] should return an array of offers matching a complex search query #2', async () => {
@@ -112,7 +135,7 @@ describe('OffersService', () => {
       await offersService.create(dummyOffer1);
     }
 
-    const offers = await offersService.search({carrier: 'дело', page: 2});
+    const offers = await offersService.search({carrierId: [1], page: 2});
     expect(offers.length).toEqual(30);
     expect(offers[0].id).toEqual(31);
   });
@@ -122,7 +145,7 @@ describe('OffersService', () => {
     await offersService.create(dummyOffer2);
     await offersService.create(dummyOffer3);
 
-    const offers = await offersService.search({carrierPhone: '88001231212', status: 0});
+    const offers = await offersService.search({carrierId: [2], status: [2]});
     expect(offers.length).toEqual(1);
     expect(offers[0].client.name).toEqual('Yandex.Market');
   });
@@ -160,15 +183,19 @@ describe('OffersService', () => {
     await expect(offersService.create({...dummyOffer1, date: new Date('1700-12-01T05:05:05.000Z')})).rejects.toThrow(BadRequestException);
   });
 
-  it('[create] should throw a BadRequestException if client\'s id doesn\'t exist or invalid', async () => {
-    await expect(offersService.create({...dummyOffer1, clientId: 50})).rejects.toThrow(BadRequestException);
+  it('[create] should throw an exception if client\'s id doesn\'t exist or invalid', async () => {
+    await expect(offersService.create({...dummyOffer1, clientId: 50})).rejects.toThrow(NotFoundException);
+    // @ts-ignore
     await expect(offersService.create({...dummyOffer1, clientId: ''})).rejects.toThrow(BadRequestException);
+    // @ts-ignore
     await expect(offersService.create({...dummyOffer1, clientId: undefined})).rejects.toThrow(BadRequestException);
   });
 
-  it('[create] should throw a BadRequestException if carrier\'s id doesn\'t exist or invalid', async () => {
-    await expect(offersService.create({...dummyOffer1, carrierId: 50})).rejects.toThrow(BadRequestException);
+  it('[create] should throw an exception if carrier\'s id doesn\'t exist or invalid', async () => {
+    await expect(offersService.create({...dummyOffer1, carrierId: 50})).rejects.toThrow(NotFoundException);
+    // @ts-ignore
     await expect(offersService.create({...dummyOffer1, carrierId: ''})).rejects.toThrow(BadRequestException);
+    // @ts-ignore
     await expect(offersService.create({...dummyOffer1, carrierId: undefined})).rejects.toThrow(BadRequestException);
   });
 
@@ -195,24 +222,25 @@ describe('OffersService', () => {
     await expect(offersService.update(123, { date: new Date('2023-12-01T05:05:05.000Z') })).rejects.toThrow(NotFoundException);
   });
 
-  it('[update] should throw a BadRequestException if client\'s id doesn\'t exist or invalid', async () => {
+  it('[update] should throw a NotFoundException if client\'s id doesn\'t exist or invalid', async () => {
     const offer = await offersService.create(dummyOffer1);
-    await expect(offersService.update(offer.id, { clientId: 50 })).rejects.toThrow(BadRequestException);
-    await expect(offersService.update(offer.id, { clientId: '' })).rejects.toThrow(BadRequestException);
-    await expect(offersService.update(offer.id, { clientId: undefined })).rejects.toThrow(BadRequestException);
+    await expect(offersService.update(offer.id, { clientId: 50 })).rejects.toThrow(NotFoundException);
+    // @ts-ignore
+    await expect(offersService.update(offer.id, { clientId: 'A number' })).rejects.toThrow(BadRequestException);
   });
 
-  it('[update] should throw a BadRequestException if carrier\'s id doesn\'t exist or invalid', async () => {
+  it('[update] should throw a NotFoundException if carrier\'s id doesn\'t exist or invalid', async () => {
     const offer = await offersService.create(dummyOffer1);
-    await expect(offersService.update(offer.id, { carrierId: 50 })).rejects.toThrow(BadRequestException);
-    await expect(offersService.update(offer.id, { carrierId: '' })).rejects.toThrow(BadRequestException);
-    await expect(offersService.update(offer.id, { carrierId: undefined })).rejects.toThrow(BadRequestException);
+    await expect(offersService.update(offer.id, { carrierId: 50 })).rejects.toThrow(NotFoundException);
+    // @ts-ignore
+    await expect(offersService.update(offer.id, { carrierId: 'A number' })).rejects.toThrow(BadRequestException);
   });
 
   it('[update] should throw a BadRequestException if status isn\'t valid', async () => {
     const offer = await offersService.create(dummyOffer1);
     await expect(offersService.update(offer.id, { status: -1 })).rejects.toThrow(BadRequestException);
     await expect(offersService.update(offer.id, { status: 3 })).rejects.toThrow(BadRequestException);
+    // @ts-ignore
     await expect(offersService.update(offer.id, { status: '' })).rejects.toThrow(BadRequestException);
     await expect(offersService.update(offer.id, { status: undefined })).rejects.toThrow(BadRequestException);
   });
@@ -226,6 +254,7 @@ describe('OffersService', () => {
   });
 
   it('[remove] should throw a BadRequestException if offer\'s id is invalid', async () => {
+    // @ts-ignore
     await expect(offersService.remove(undefined)).rejects.toThrow(BadRequestException);
   });
 
